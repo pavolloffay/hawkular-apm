@@ -80,6 +80,7 @@
     <module>server/kafka</module>
     <module>server/rest</module>
     <module>server/security-jaas</module>
+    <module>server/zipkin</module>
     <module>server/war</module>
     <module>tools/instrumenter</module>
     <module>ui</module>
@@ -267,6 +268,12 @@
         <groupId>org.hawkular.apm</groupId>
         <artifactId>hawkular-apm-server-security-jaas</artifactId>
         <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hawkular.apm</groupId>
+        <artifactId>hawkular-apm-zipkin</artifactId>
+        <version>${project.version}</version>
+        <type>war</type>
       </dependency>
 
       <!-- APM Tests -->
