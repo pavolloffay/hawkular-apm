@@ -151,6 +151,16 @@
   </dependencyManagement>
 
   <build>
+    <!--<testResources>-->
+      <!--<testResource>-->
+        <!--<directory>${project.basedir}/src/test/resources</directory>-->
+        <!--<includes>-->
+          <!--<include>hawkular-elasticsearch.properties</include>-->
+        <!--</includes>-->
+        <!--<targetPath>${project.build.directory}/wildfly-${version.org.wildfly}/standalone/configuration/</targetPath>-->
+      <!--</testResource>-->
+    <!--</testResources>-->
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -179,10 +189,17 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>aaa</id>
+            <phase>test-compile</phase>
+          </execution>
+        </executions>
         <configuration>
           <systemPropertyVariables>
             <wildfly.dir>${wildfly.dir}</wildfly.dir>
             <project.version>${project.version}</project.version>
+            <HAWKULAR_APM_CONFIG_DIR>${project.build.directory}</HAWKULAR_APM_CONFIG_DIR>
           </systemPropertyVariables>
         </configuration>
       </plugin>

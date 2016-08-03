@@ -48,26 +48,36 @@ public class SpanStoreMDBTest {
                 System.getProperty("project.version"))
                 .withTransitivity()
                 .as(JavaArchive.class);
+        JavaArchive[] elastic = Maven.resolver().resolve("org.hawkular.apm:hawkular-apm-server-elasticsearch:" +
+                System.getProperty("project.version"))
+                .withTransitivity()
+                .as(JavaArchive.class);
 
-        WebArchive war = ShrinkWrap.create(WebArchive.class)
-                .addAsLibraries(localPomDeps)
-                .addAsLibraries(infinispan)
-//                .addPackages(true, "org.hawkular.apm.server.jms")
+        JavaArchive jar = ShrinkWrap.create(JavaArchive.class)
                 .addPackage("org.hawkular.apm.server.jms")
                 .addPackage("org.hawkular.apm.server.jms.log")
                 .addPackage("org.hawkular.apm.server.jms.span")
                 .addPackage("org.hawkular.apm.server.jms.trace")
                 .addClass(SpanStoreMDB.class)
-                .addAsManifestResource(EmptyAsset.INSTANCE, "META_INF/beans.xml");
+                .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
 
-//        File[] libs = Maven.resolver()
-//                .loadPomFromFile("pom.xml").resolve("org.apache.commons:commons-lang3")
-//                .withTransitivity().as(File.class);
+        WebArchive war = ShrinkWrap.create(WebArchive.class)
+                .addAsLibraries(localPomDeps)
+                .addAsLibraries(infinispan)
+                .addAsLibraries(elastic)
+                .addAsLibraries(jar)
+//                .addPackages(true, "org.hawkular.apm.server.jms")
+//                .addPackage("org.hawkular.apm.server.jms")
+//                .addPackage("org.hawkular.apm.server.jms.log")
+//                .addPackage("org.hawkular.apm.server.jms.span")
+//                .addPackage("org.hawkular.apm.server.jms.trace")
+//                .addClass(SpanStoreMDB.class)
+                .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
 
         return war;
     }
 
-    @Resource(mappedName = "java:/Spans")
+    @Resource(mappedName = "/Spans")
     Topic spanTopic;
 
     @Resource(mappedName = "/ConnectionFactory")
