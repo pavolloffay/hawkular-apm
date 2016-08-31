@@ -195,6 +195,11 @@ public class ProducerInfoUtilTest {
             throw new UnsupportedOperationException();
         }
 
+        @Override
+        public List<Span> getTrace(String tenant, String id) {
+            throw new UnsupportedOperationException();
+        }
+
         /* (non-Javadoc)
          * @see org.hawkular.apm.server.api.services.SpanCache#store(java.lang.String, java.util.List, java.util.function.Function)
          */

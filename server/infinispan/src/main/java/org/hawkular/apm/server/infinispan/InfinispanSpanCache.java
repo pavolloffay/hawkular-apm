@@ -146,4 +146,19 @@ public class InfinispanSpanCache implements SpanCache, ServiceLifecycle {
                 .filter(span -> !span.serverSpan())
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Span> getTrace(String tenant, String id) {
+        if (id == null) {
+            throw new NullPointerException("Id should not be null!");
+        }
+
+        QueryFactory<?> queryFactory = Search.getQueryFactory(spansCache);
+        Query query = queryFactory.from(Span.class)
+                .having("traceId")
+                .eq(id)
+                .toBuilder().build();
+
+        return query.list();
+    }
 }

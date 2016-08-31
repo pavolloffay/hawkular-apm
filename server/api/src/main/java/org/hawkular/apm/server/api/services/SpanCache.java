@@ -31,10 +31,20 @@ public interface SpanCache extends Cache<Span> {
     /**
      * Get all children of a given span.
      *
+     * @param tenant the tenant
      * @param id Id of the span.
      * @return Children spans of a given span.
      */
     List<Span> getChildren(String tenant, String id);
+
+    /**
+     * Get all spans which belongs to the trace.
+     *
+     * @param tenant the tenant
+     * @param id id of the trace
+     * @return spans which belongs to a given trace
+     */
+    List<Span> getTrace(String tenant, String id);
 
     /**
      * Stores spans into cache

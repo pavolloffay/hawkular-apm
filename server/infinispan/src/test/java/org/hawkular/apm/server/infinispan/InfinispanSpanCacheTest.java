@@ -36,8 +36,6 @@ import org.junit.Test;
  */
 public class InfinispanSpanCacheTest extends AbstractInfinispanTest {
 
-    private static final String TENANT = "tenant";
-
     private InfinispanSpanCache spanCache;
 
     @Before
@@ -92,7 +90,7 @@ public class InfinispanSpanCacheTest extends AbstractInfinispanTest {
         storeOne(spanCache, childClientSpan2);
 
         Assert.assertEquals(new HashSet<>(Arrays.asList(childClientSpan, childClientSpan2)),
-                new HashSet<>(spanCache.getChildren(TENANT, parent.getId())));
+                new HashSet<>(spanCache.getChildren(null, parent.getId())));
     }
 
     @Test
@@ -101,16 +99,43 @@ public class InfinispanSpanCacheTest extends AbstractInfinispanTest {
         span.setId("parent");
         span.setAnnotations(clientAnnotations());
 
-        spanCache.store(TENANT, Arrays.asList(span), x -> x.getId() + "-foo");
-        Assert.assertEquals(span, spanCache.get(TENANT, span.getId() + "-foo"));
+        spanCache.store(null, Arrays.asList(span), x -> x.getId() + "-foo");
+        Assert.assertEquals(span, spanCache.get(null, span.getId() + "-foo"));
+    }
+
+    @Test
+    public void testGetTrace() throws CacheException {
+        Span rootSpan = new Span();
+        rootSpan.setId("trace");
+        rootSpan.setTraceId("trace");
+
+        Span descSpan = new Span();
+        descSpan.setId("desc1");
+        descSpan.setTraceId("trace");
+        descSpan.setParentId("trace");
+
+        Span descSpan2 = new Span();
+        descSpan2.setId("desc2");
+        descSpan2.setTraceId("trace");
+        descSpan2.setParentId("desc1");
+
+        Span orphanSpan = new Span();
+        orphanSpan.setId("orphan");
+        orphanSpan.setTraceId("orphan");
+        orphanSpan.setParentId("orphan");
+
+        spanCache.store(null, Arrays.asList(rootSpan, descSpan, descSpan2, orphanSpan));
+
+        Assert.assertEquals(new HashSet<>(Arrays.asList(rootSpan, descSpan, descSpan2)),
+                new HashSet<>(spanCache.getTrace(null, "trace")));
     }
 
     private void storeOne(SpanCache spanCache, Span span) throws CacheException {
-        spanCache.store(TENANT, Arrays.asList(span));
+        spanCache.store(null, Arrays.asList(span));
     }
 
     private Span getOne(SpanCache spanCache, String id) throws CacheException {
-        return spanCache.get(TENANT, id);
+        return spanCache.get(null, id);
     }
 
     private List<Annotation> clientAnnotations() {
