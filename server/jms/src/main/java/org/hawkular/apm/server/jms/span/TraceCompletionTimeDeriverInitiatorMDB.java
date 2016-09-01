@@ -22,46 +22,47 @@ import javax.ejb.MessageDriven;
 import javax.inject.Inject;
 import javax.jms.MessageListener;
 
-import org.hawkular.apm.api.model.events.CompletionTime;
-import org.hawkular.apm.processor.zipkin.TraceCompletionTimeDeriver;
+import org.hawkular.apm.processor.zipkin.CompletionTimeDeriverInitiator;
+import org.hawkular.apm.processor.zipkin.CompletionTimeProcessing;
+import org.hawkular.apm.processor.zipkin.CompletionTimeProcessingPublisher;
 import org.hawkular.apm.server.api.model.zipkin.Span;
 import org.hawkular.apm.server.jms.RetryCapableMDB;
-import org.hawkular.apm.server.jms.TraceCompletionTimePublisherJMS;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * @author gbrown
+ * @author Pavol Loffay
  */
-@MessageDriven(name = "Span_TraceCompletionTimeDeriver", messageListenerInterface = MessageListener.class, activationConfig = {
+@MessageDriven(name = "Span_TraceCompletionTimeDeriverInitiator",
+        messageListenerInterface = MessageListener.class, activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
         @ActivationConfigProperty(propertyName = "destination", propertyValue = "Spans"),
         @ActivationConfigProperty(propertyName = "subscriptionDurability", propertyValue = "Durable"),
-        @ActivationConfigProperty(propertyName = "clientID", propertyValue = TraceCompletionTimeDeriverMDB.SUBSCRIBER),
-        @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = TraceCompletionTimeDeriverMDB.SUBSCRIBER),
+        @ActivationConfigProperty(propertyName = "clientID", propertyValue = TraceCompletionTimeDeriverInitiatorMDB.SUBSCRIBER),
+        @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = TraceCompletionTimeDeriverInitiatorMDB.SUBSCRIBER),
         @ActivationConfigProperty(propertyName = "messageSelector", propertyValue = "subscriber IS NULL OR subscriber = '"
-                + TraceCompletionTimeDeriverMDB.SUBSCRIBER + "'")
+                + TraceCompletionTimeDeriverInitiatorMDB.SUBSCRIBER + "'")
 })
-public class TraceCompletionTimeDeriverMDB extends RetryCapableMDB<Span, CompletionTime> {
+public class TraceCompletionTimeDeriverInitiatorMDB extends RetryCapableMDB<Span, CompletionTimeProcessing> {
+
+    public static final String SUBSCRIBER = "SpanTraceCompletionTimeDeriverInitiator";
 
     @Inject
     private SpanPublisherJMS spanPublisher;
 
     @Inject
-    private TraceCompletionTimePublisherJMS traceCompletionTimePublisher;
+    private CompletionTimeProcessingPublisher completionTimeProcessingPublisher;
 
-    /**  */
-    public static final String SUBSCRIBER = "SpanTraceCompletionTimeDeriver";
-
-    public TraceCompletionTimeDeriverMDB() {
+    public TraceCompletionTimeDeriverInitiatorMDB() {
         super(SUBSCRIBER);
     }
 
     @PostConstruct
     public void init() {
-        setProcessor(new TraceCompletionTimeDeriver());
+        setProcessor(new CompletionTimeDeriverInitiator());
         setRetryPublisher(spanPublisher);
-        setPublisher(traceCompletionTimePublisher);
+        setPublisher(completionTimeProcessingPublisher);
         setTypeReference(new TypeReference<java.util.List<Span>>() {
         });
     }

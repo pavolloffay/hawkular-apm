@@ -14,18 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hawkular.apm.processor.zipkin;
 
-import org.junit.Test;
+package org.hawkular.apm.server.jms.span;
+
+import org.hawkular.apm.processor.zipkin.CompletionTimeProcessing;
+import org.hawkular.apm.processor.zipkin.CompletionTimeProcessingPublisher;
+import org.hawkular.apm.server.jms.AbstractPublisherJMS;
 
 /**
- * @author gbrown
+ * @author Pavol Loffay
  */
-public class FragmentCompletionTimeDeriverTest {
+public class CompletionTimeProcessingPublisherJMS extends AbstractPublisherJMS<CompletionTimeProcessing>
+        implements CompletionTimeProcessingPublisher {
 
-    @Test
-    public void testNothing() {
-
+    @Override
+    protected String getDestinationURI() {
+        return "java:/SpanTraceCompletionTimeProcessing";
     }
-
 }

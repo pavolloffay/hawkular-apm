@@ -49,6 +49,7 @@
       <jms-topic name="NodeDetails" entries="java:/NodeDetails"/>
       <jms-topic name="Notifications" entries="java:/Notifications"/>
       <jms-topic name="Spans" entries="java:/Spans"/>
+      <jms-topic name="SpanTraceCompletionTimeProcessing" entries="java:/SpanTraceCompletionTimeProcessing"/>
     </xsl:copy>
   </xsl:template>
 
