@@ -74,6 +74,7 @@
       <cache-container name="apm" jndi-name="infinispan/APM">
         <local-cache name="communicationdetails"/>
         <local-cache name="producerinfo"/>
+        <local-cache name="span" />
       </cache-container>
     </xsl:variable>
 

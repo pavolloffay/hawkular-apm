@@ -22,5 +22,5 @@ import org.hawkular.apm.api.services.Publisher;
 /**
  * @author Pavol Loffay
  */
-public interface CompletionTimeProcessingPublisher extends Publisher<CompletionTimeProcessing>{
+public interface CompletionTimeProcessingPublisher extends Publisher<CompletionTimeProcessing> {
 }

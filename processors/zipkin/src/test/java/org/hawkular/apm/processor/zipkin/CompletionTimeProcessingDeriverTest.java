@@ -31,12 +31,12 @@ import org.mockito.Mockito;
 /**
  * @author Pavol Loffay
  */
-public class CompletionTimeDeriverTest {
+public class CompletionTimeProcessingDeriverTest {
 
     @Test
     public void testSpanTraceCompletionTime() throws RetryAttemptException {
         SpanCache spanCacheMock = Mockito.mock(SpanCache.class);
-        CompletionTimeDeriver completionTimeDeriver = new CompletionTimeDeriver(spanCacheMock);
+        CompletionTimeProcessingDeriver completionTimeProcessingDeriver = new CompletionTimeProcessingDeriver(spanCacheMock);
 
         Span rootSpan = new Span();
         rootSpan.setId("trace");
@@ -53,10 +53,12 @@ public class CompletionTimeDeriverTest {
 
         CompletionTimeProcessing completionTimeProcessing = new CompletionTimeProcessing(rootSpan);
 
-        CompletionTime completionTime = completionTimeDeriver.processOneToOne(null, completionTimeProcessing);
+        CompletionTime completionTime = completionTimeProcessingDeriver.processOneToOne(null, completionTimeProcessing)
+                .getCompletionTime();
         Assert.assertNull(completionTime);
 
-        completionTime = completionTimeDeriver.processOneToOne(null, completionTimeProcessing);
+        completionTime = completionTimeProcessingDeriver.processOneToOne(null, completionTimeProcessing)
+                .getCompletionTime();
         Assert.assertEquals(rootSpan.getDuration(), completionTime.getDuration());
 
         Span descendant = new Span();
@@ -71,10 +73,12 @@ public class CompletionTimeDeriverTest {
 
         Mockito.when(spanCacheMock.getTrace(null, "trace")).thenReturn(Arrays.asList(rootSpan, descendant));
 
-        completionTime = completionTimeDeriver.processOneToOne(null, completionTimeProcessing);
+        completionTime = completionTimeProcessingDeriver.processOneToOne(null, completionTimeProcessing)
+                .getCompletionTime();
         Assert.assertNull(completionTime);
 
-        completionTime = completionTimeDeriver.processOneToOne(null, completionTimeProcessing);
+        completionTime = completionTimeProcessingDeriver.processOneToOne(null, completionTimeProcessing)
+                .getCompletionTime();
         Assert.assertEquals(annotation1.getTimestamp() - rootSpan.getTimestamp(), completionTime.getDuration());
 
         Mockito.verify(spanCacheMock, Mockito.times(4)).getTrace(null, "trace");

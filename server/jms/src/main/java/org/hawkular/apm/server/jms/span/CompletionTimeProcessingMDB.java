@@ -25,10 +25,9 @@ import javax.ejb.MessageDriven;
 import javax.inject.Inject;
 import javax.jms.MessageListener;
 
-import org.hawkular.apm.api.model.events.CompletionTime;
-import org.hawkular.apm.processor.zipkin.CompletionTimeDeriver;
 import org.hawkular.apm.processor.zipkin.CompletionTimeProcessing;
-import org.hawkular.apm.server.api.services.TraceCompletionTimePublisher;
+import org.hawkular.apm.processor.zipkin.CompletionTimeProcessingDeriver;
+import org.hawkular.apm.processor.zipkin.CompletionTimeProcessingPublisher;
 import org.hawkular.apm.server.jms.RetryCapableMDB;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -36,7 +35,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 /**
  * @author Pavol Loffay
  */
-@MessageDriven(name = "TraceCompletionTimeProcessing_TraceCompletionTimeDeriver",
+@MessageDriven(name = "CompletionTimeProcessing_TraceCompletionTimeProcessingDeriver",
         messageListenerInterface = MessageListener.class,
         activationConfig =  {
             @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
@@ -48,18 +47,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
             @ActivationConfigProperty(propertyName = "messageSelector",
                     propertyValue = "subscriber IS NULL OR subscriber = '"+CompletionTimeProcessingMDB.SUBSCRIBER+"'")
 })
-public class CompletionTimeProcessingMDB extends RetryCapableMDB<CompletionTimeProcessing, CompletionTime> {
+public class CompletionTimeProcessingMDB extends RetryCapableMDB<CompletionTimeProcessing, CompletionTimeProcessing> {
 
-    public static final String SUBSCRIBER = "SpanTraceCompletionTimeDeriver";
-
-    @Inject
-    private CompletionTimeProcessingPublisherJMS completionTimeProcessingPublisher;
+    public static final String SUBSCRIBER = "SpanTraceCompletionTimeProcessingDeriver";
 
     @Inject
-    private TraceCompletionTimePublisher traceCompletionTimePublisher;
+    private CompletionTimeProcessingPublisher traceCompletionTimePublisher;
 
     @Inject
-    private CompletionTimeDeriver completionTimeDeriver;
+    private CompletionTimeProcessingDeriver completionTimeProcessingDeriver;
 
 
     public CompletionTimeProcessingMDB() {
@@ -68,8 +64,8 @@ public class CompletionTimeProcessingMDB extends RetryCapableMDB<CompletionTimeP
 
     @PostConstruct
     public void init() {
-        setProcessor(completionTimeDeriver);
-        setRetryPublisher(completionTimeProcessingPublisher);
+        setProcessor(completionTimeProcessingDeriver);
+        setRetryPublisher(new CompletionTimeProcessingPublisherJMS());
         setPublisher(traceCompletionTimePublisher);
         setTypeReference(new TypeReference<List<CompletionTimeProcessing>>() {
         });

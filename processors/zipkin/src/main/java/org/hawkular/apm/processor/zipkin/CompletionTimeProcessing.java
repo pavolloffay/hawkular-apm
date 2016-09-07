@@ -17,6 +17,7 @@
 
 package org.hawkular.apm.processor.zipkin;
 
+import org.hawkular.apm.api.model.events.CompletionTime;
 import org.hawkular.apm.server.api.model.zipkin.Span;
 
 /**
@@ -34,6 +35,11 @@ public class CompletionTimeProcessing {
      * (e.g. the last event which happened in trace)
      */
     private Long lastTimestamp;
+
+    /**
+     * Trace completion time, if set processing is over
+     */
+    private CompletionTime completionTime;
 
 
     public CompletionTimeProcessing() {}
@@ -56,5 +62,13 @@ public class CompletionTimeProcessing {
 
     public void setLastTimestamp(Long lastTimestamp) {
         this.lastTimestamp = lastTimestamp;
+    }
+
+    public CompletionTime getCompletionTime() {
+        return completionTime;
+    }
+
+    public void setCompletionTime(CompletionTime completionTime) {
+        this.completionTime = completionTime;
     }
 }
