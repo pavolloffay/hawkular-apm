@@ -32,9 +32,8 @@ public abstract class AbstractInfinispanTest {
 
     @BeforeClass
     public static void initClass() {
-        cacheManager = new DefaultCacheManager();
         Configuration configuration = new ConfigurationBuilder().invocationBatching().enable().build();
-        cacheManager.defineConfiguration(InfinispanSpanCache.CACHE_NAME, configuration);
+        cacheManager = new DefaultCacheManager(configuration);
     }
 
     @AfterClass

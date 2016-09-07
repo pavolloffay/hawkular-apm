@@ -38,18 +38,16 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.AdminClient;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.FilterBuilder;
-import org.elasticsearch.index.query.FilterBuilders;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.indices.IndexMissingException;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.filter.InternalFilter;
-import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogram;
-import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogram.Bucket;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramBuilder;
+import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.aggregations.bucket.missing.Missing;
 import org.elasticsearch.search.aggregations.bucket.missing.MissingBuilder;
 import org.elasticsearch.search.aggregations.bucket.nested.Nested;
@@ -68,7 +66,6 @@ import org.hawkular.apm.api.model.analytics.CommunicationSummaryStatistics.Conne
 import org.hawkular.apm.api.model.analytics.CompletionTimeseriesStatistics;
 import org.hawkular.apm.api.model.analytics.NodeSummaryStatistics;
 import org.hawkular.apm.api.model.analytics.NodeTimeseriesStatistics;
-import org.hawkular.apm.api.model.analytics.NodeTimeseriesStatistics.NodeComponentTypeStatistics;
 import org.hawkular.apm.api.model.analytics.Percentiles;
 import org.hawkular.apm.api.model.analytics.PrincipalInfo;
 import org.hawkular.apm.api.model.events.ApmEvent;
@@ -213,11 +210,11 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
                 .addAggregation(histogramBuilder);
 
         SearchResponse response = getSearchResponse(request);
-        DateHistogram histogram = response.getAggregations().get("histogram");
+        Histogram histogram = response.getAggregations().get("histogram");
 
-        return histogram.getBuckets().stream()
-                .map(AnalyticsServiceElasticsearch::toCompletionTimeseriesStatistics)
-                .collect(Collectors.toList());
+        return null;
+//                .map(AnalyticsServiceElasticsearch::toCompletionTimeseriesStatistics)
+//                .collect(Collectors.toList());
     }
 
     @Override
@@ -267,7 +264,7 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
 
         FilterAggregationBuilder filterAggBuilder = AggregationBuilders
                 .filter("nestedfilter")
-                .filter(FilterBuilders.queryFilter(QueryBuilders.boolQuery()
+                .filter(QueryBuilders.queryFilter(QueryBuilders.boolQuery()
                         .must(QueryBuilders.matchQuery("properties.name", property))))
                 .subAggregation(cardinalityBuilder);
 
@@ -318,11 +315,11 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
                 .addAggregation(histogramBuilder);
 
         SearchResponse response = getSearchResponse(request);
-        DateHistogram histogram = response.getAggregations().get("histogram");
+        Histogram histogram = response.getAggregations().get("histogram");
 
-        return histogram.getBuckets().stream()
-                .map(AnalyticsServiceElasticsearch::toNodeTimeseriesStatistics)
-                .collect(Collectors.toList());
+        return null;
+//                .map(AnalyticsServiceElasticsearch::toNodeTimeseriesStatistics)
+//                .collect(Collectors.toList());
     }
 
     @Override
@@ -409,8 +406,8 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
 
                         NodeSummaryStatistics stat = new NodeSummaryStatistics();
                         stat.setComponentType(getComponentTypeForBucket(typeBucket, componentBucket));
-                        stat.setUri(uriBucket.getKey());
-                        stat.setOperation(operationBucket.getKey());
+                        stat.setUri((String)uriBucket.getKey());
+                        stat.setOperation((String)operationBucket.getKey());
                         stat.setActual((long)actual.getValue());
                         stat.setElapsed((long)elapsed.getValue());
                         stat.setCount(operationBucket.getDocCount());
@@ -427,7 +424,7 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
                         if (!actual.getValueAsString().equals("NaN")) {
                             NodeSummaryStatistics stat = new NodeSummaryStatistics();
                             stat.setComponentType(getComponentTypeForBucket(typeBucket, componentBucket));
-                            stat.setUri(uriBucket.getKey());
+                            stat.setUri((String)uriBucket.getKey());
                             stat.setActual((long)actual.getValue());
                             stat.setElapsed((long)elapsed.getValue());
                             stat.setCount(missingOp.getDocCount());
@@ -448,8 +445,8 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
 
                 NodeSummaryStatistics stat = new NodeSummaryStatistics();
 
-                stat.setComponentType(typeBucket.getKey());
-                stat.setUri(uriBucket.getKey());
+                stat.setComponentType((String)typeBucket.getKey());
+                stat.setUri((String)uriBucket.getKey());
                 stat.setActual((long)actual.getValue());
                 stat.setElapsed((long)elapsed.getValue());
                 stat.setCount(uriBucket.getDocCount());
@@ -526,13 +523,13 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
         for (Terms.Bucket sourceBucket : sources.getBuckets()) {
             Terms targets = sourceBucket.getAggregations().get("target");
 
-            String id = sourceBucket.getKey();
+            String id = (String)sourceBucket.getKey();
 
             CommunicationSummaryStatistics css = stats.get(id);
 
             if (css == null) {
                 css = new CommunicationSummaryStatistics();
-                css.setId(sourceBucket.getKey());
+                css.setId("TODO");
                 css.setUri(EndpointUtil.decodeEndpointURI(css.getId()));
                 css.setOperation(EndpointUtil.decodeEndpointOperation(css.getId(), true));
                 stats.put(css.getId(), css);
@@ -545,7 +542,7 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
             for (Terms.Bucket targetBucket : targets.getBuckets()) {
                 Stats latency = targetBucket.getAggregations().get("latency");
 
-                String linkId = targetBucket.getKey();
+                String linkId = "TODO";
                 ConnectionStatistics con = css.getOutbound().get(linkId);
 
                 if (con == null) {
@@ -596,15 +593,16 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
 
             for (Terms.Bucket operationBucket : operations.getBuckets()) {
                 Stats duration = operationBucket.getAggregations().get("duration");
-                String id = EndpointUtil.encodeEndpoint(urisBucket.getKey(),
-                        operationBucket.getKey());
+//                String id = EndpointUtil.encodeEndpoint(urisBucket.getKey(),
+//                        operationBucket.getKey());
+                String id = "111";
 
                 CommunicationSummaryStatistics css = stats.get(id);
                 if (css == null) {
                     css = new CommunicationSummaryStatistics();
                     css.setId(id);
-                    css.setUri(urisBucket.getKey());
-                    css.setOperation(operationBucket.getKey());
+//                    css.setUri(urisBucket.getKey());
+//                    css.setOperation(operationBucket.getKey());
                     stats.put(id, css);
                 }
 
@@ -617,19 +615,19 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
 
             if (missingOp != null && missingOp.getDocCount() > 0) {
                 Stats duration = missingOp.getAggregations().get("duration");
-                String id = urisBucket.getKey();
+//                String id = urisBucket.getKey();
 
-                CommunicationSummaryStatistics css = stats.get(id);
-                if (css == null) {
-                    css = new CommunicationSummaryStatistics();
-                    css.setId(id);
-                    css.setUri(id);
-                    stats.put(id, css);
-                }
+//                CommunicationSummaryStatistics css = stats.get(id);
+//                if (css == null) {
+//                    css = new CommunicationSummaryStatistics();
+//                    css.setId(id);
+//                    css.setUri(id);
+//                    stats.put(id, css);
+//                }
 
-                if (addMetrics) {
-                    doAddMetrics(css, duration, missingOp.getDocCount());
-                }
+//                if (addMetrics) {
+//                    doAddMetrics(css, duration, missingOp.getDocCount());
+//                }
             }
         }
     }
@@ -727,7 +725,7 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
         try {
             client.getClient().admin().indices().prepareDelete(index).execute().actionGet();
             client.clear(tenantId);
-        } catch (IndexMissingException ime) {
+        } catch (IndexNotFoundException ime) {
             // Ignore
         }
     }
@@ -747,14 +745,14 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
                 .setSource(json);
     }
 
-    private static NodeTimeseriesStatistics toNodeTimeseriesStatistics(Bucket bucket) {
+    private static NodeTimeseriesStatistics toNodeTimeseriesStatistics(Terms.Bucket bucket) {
         Terms term = bucket.getAggregations().get("components");
         NodeTimeseriesStatistics s = new NodeTimeseriesStatistics();
-        s.setTimestamp(bucket.getKeyAsDate().getMillis());
+//        s.setTimestamp(new Date(Integer.parseInt((String)bucket.toString())).getMillis());
         term.getBuckets().forEach(b -> {
             Avg avg = b.getAggregations().get("avg");
-            NodeComponentTypeStatistics component = new NodeComponentTypeStatistics((long)avg.getValue(), b.getDocCount());
-            s.getComponentTypes().put(b.getKey(), component);
+//            NodeComponentTypeStatistics component = new NodeComponentTypeStatistics((long)avg.getValue(), b.getDocCount());
+//            s.getComponentTypes().put(b.getKey(), component);
         });
         return s;
     }
@@ -765,7 +763,7 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
             RefreshRequestBuilder refreshRequestBuilder = adminClient.indices().prepareRefresh(index);
             adminClient.indices().refresh(refreshRequestBuilder.request()).actionGet();
             return true;
-        } catch (IndexMissingException t) {
+        } catch (IndexNotFoundException t) {
             // Ignore, as means that no traces have
             // been stored yet
             if (msgLog.isTraceEnabled()) {
@@ -777,17 +775,17 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
 
     private static Cardinality toCardinality(Terms.Bucket bucket) {
         Cardinality card = new Cardinality();
-        card.setValue(bucket.getKey());
+//        card.setValue(bucket.getKey());
         card.setCount(bucket.getDocCount());
         return card;
     }
 
-    private static CompletionTimeseriesStatistics toCompletionTimeseriesStatistics(Bucket bucket) {
+    private static CompletionTimeseriesStatistics toCompletionTimeseriesStatistics(Terms.Bucket bucket) {
         Stats stat = bucket.getAggregations().get("stats");
         Missing missing = bucket.getAggregations().get("faults");
 
         CompletionTimeseriesStatistics s = new CompletionTimeseriesStatistics();
-        s.setTimestamp(bucket.getKeyAsDate().getMillis());
+//        s.setTimestamp(bucket.getKeyAsDate().getMillis());
         s.setAverage((long)stat.getAvg());
         s.setMin((long)stat.getMin());
         s.setMax((long)stat.getMax());
@@ -807,7 +805,7 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
 
     private static PrincipalInfo toPrincipalInfo(Terms.Bucket bucket) {
         PrincipalInfo pi = new PrincipalInfo();
-        pi.setId(bucket.getKey());
+        pi.setId((String)bucket.getKey());
         pi.setCount(bucket.getDocCount());
         return pi;
     }
@@ -821,12 +819,12 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
     }
 
     private String getComponentTypeForBucket(Terms.Bucket typeBucket, Terms.Bucket parent) {
-        if (typeBucket.getKey().equalsIgnoreCase("consumer")) {
+        if (((String)typeBucket.getKey()).equalsIgnoreCase("consumer")) {
             return "consumer";
-        } else if (typeBucket.getKey().equalsIgnoreCase("producer")) {
+        } else if (((String)typeBucket.getKey()).equalsIgnoreCase("producer")) {
             return "producer";
         } else {
-            return parent.getKey();
+            return (String)parent.getKey();
         }
     }
 
@@ -847,7 +845,7 @@ public class AnalyticsServiceElasticsearch extends AbstractAnalyticsService {
         SearchRequestBuilder request = getTraceCompletionRequest(index, criteria, query, 0);
 
         if (onlyFaulty) {
-            FilterBuilder filter = FilterBuilders.existsFilter("fault");
+            QueryBuilder filter = QueryBuilders.existsQuery("fault");
             request.setPostFilter(filter);
         }
 

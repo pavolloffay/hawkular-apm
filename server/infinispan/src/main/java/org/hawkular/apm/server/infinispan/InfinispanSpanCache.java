@@ -47,7 +47,7 @@ public class InfinispanSpanCache implements SpanCache, ServiceLifecycle {
 
     private static final Logger log = Logger.getLogger(InfinispanSpanCache.class.getName());
 
-    protected static final String CACHE_NAME = "span";
+    private static final String CACHE_NAME = "span";
 
     @Resource(lookup = "java:jboss/infinispan/APM")
     private CacheContainer cacheContainer;
@@ -71,18 +71,12 @@ public class InfinispanSpanCache implements SpanCache, ServiceLifecycle {
 
         // If cache container not already provisions, then must be running outside of a JEE
         // environment, so create a default cache container
-        if (cacheContainer == null) {
-            if (log.isLoggable(Level.FINER)) {
-                log.fine("Using default cache");
-            }
+//        if (cacheContainer == null) {
+//            if (log.isLoggable(Level.FINER)) {
+//                log.fine("Using default cache");
+//            }
             spansCache = InfinispanCacheManager.getDefaultCache(CACHE_NAME);
-        } else {
-            if (log.isLoggable(Level.FINER)) {
-                log.fine("Using container provided cache");
-            }
-            spansCache = cacheContainer.getCache(CACHE_NAME);
-        }
-
+//        }
     }
 
     /**
@@ -109,10 +103,6 @@ public class InfinispanSpanCache implements SpanCache, ServiceLifecycle {
     public void store(String tenantId, List<Span> spans, Function<Span, String> cacheKeyEntrySupplier)
             throws CacheException {
 
-        if (cacheContainer != null) {
-            spansCache.startBatch();
-        }
-
         for (Span span : spans) {
 
             if (log.isLoggable(Level.FINEST)) {
@@ -120,10 +110,6 @@ public class InfinispanSpanCache implements SpanCache, ServiceLifecycle {
             }
 
             spansCache.put(cacheKeyEntrySupplier.apply(span), span, 1, TimeUnit.MINUTES);
-        }
-
-        if (cacheContainer != null) {
-            spansCache.endBatch(true);
         }
     }
 

@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
 
@@ -87,8 +87,9 @@ public final class ElasticsearchEmbeddedNode {
             }
 
             node = NodeBuilder.nodeBuilder()
-                    .settings(ImmutableSettings.settingsBuilder()
-                            .put(properties)).node();
+                    .settings(Settings.builder()
+                            .put(properties)
+                    .put("path.home", "/")).node();
 
             node.start();
             client = node.client();
@@ -112,11 +113,6 @@ public final class ElasticsearchEmbeddedNode {
         if (client != null) {
             client.close();
             client = null;
-        }
-
-        if (node != null) {
-            node.stop();
-            node = null;
         }
     }
 

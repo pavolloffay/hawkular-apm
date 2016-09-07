@@ -122,9 +122,9 @@
     <version.org.apache.httpcomponents>4.5</version.org.apache.httpcomponents>
     <version.org.apache.httpcomponents-httpcore>4.4.5</version.org.apache.httpcomponents-httpcore>
     <version.org.apache.kafka>0.10.0.0</version.org.apache.kafka>
-    <version.org.apache.lucene>4.10.4</version.org.apache.lucene>
+    <version.org.apache.lucene>5.3.1</version.org.apache.lucene>
     <version.org.eclipse.jetty>8.1.15.v20140411</version.org.eclipse.jetty>
-    <version.org.elasticsearch>1.7.1</version.org.elasticsearch>
+    <version.org.elasticsearch>2.10</version.org.elasticsearch>
     <version.org.infinispan.infinispan-query>8.1.0.Final</version.org.infinispan.infinispan-query>
     <version.org.jboss.byteman>3.0.6</version.org.jboss.byteman>
     <version.org.jboss.shrinkwrap.resolvers>2.2.2</version.org.jboss.shrinkwrap.resolvers>

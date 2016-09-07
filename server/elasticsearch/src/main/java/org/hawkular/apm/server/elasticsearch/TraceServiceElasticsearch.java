@@ -31,9 +31,9 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.FilterBuilder;
-import org.elasticsearch.indices.IndexMissingException;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortOrder;
 import org.hawkular.apm.api.model.Property;
@@ -248,7 +248,7 @@ public class TraceServiceElasticsearch implements TraceService {
                     .setQuery(query)
                     .addSort("startTime", SortOrder.ASC);
 
-            FilterBuilder filter = ElasticsearchUtil.buildFilter(criteria);
+            QueryBuilder filter = ElasticsearchUtil.buildFilter(criteria);
             if (filter != null) {
                 request.setPostFilter(filter);
             }
@@ -270,7 +270,7 @@ public class TraceServiceElasticsearch implements TraceService {
             if (msgLog.isTraceEnabled()) {
                 msgLog.tracef("Query traces with criteria[%s] is: %s", criteria, ret);
             }
-        } catch (org.elasticsearch.indices.IndexMissingException ime) {
+        } catch (IndexNotFoundException ime) {
             // Ignore, as means that no traces have
             // been stored yet
             if (msgLog.isTraceEnabled()) {
@@ -342,7 +342,7 @@ public class TraceServiceElasticsearch implements TraceService {
         try {
             client.getClient().admin().indices().prepareDelete(index).execute().actionGet();
             client.clear(tenantId);
-        } catch (IndexMissingException ime) {
+        } catch (IndexNotFoundException ime) {
             // Ignore
         }
     }

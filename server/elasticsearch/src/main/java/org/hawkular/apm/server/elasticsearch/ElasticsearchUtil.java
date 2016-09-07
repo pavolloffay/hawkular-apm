@@ -17,8 +17,7 @@
 package org.hawkular.apm.server.elasticsearch;
 
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.FilterBuilder;
-import org.elasticsearch.index.query.FilterBuilders;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.hawkular.apm.api.model.events.CompletionTime;
@@ -157,9 +156,9 @@ public class ElasticsearchUtil {
      * @param criteria The criteria
      * @return The filter, or null if not relevant
      */
-    public static FilterBuilder buildFilter(Criteria criteria) {
+    public static QueryBuilder buildFilter(Criteria criteria) {
         if (criteria.getBusinessTransaction() != null && criteria.getBusinessTransaction().trim().isEmpty()) {
-            return FilterBuilders.missingFilter("businessTransaction");
+            return QueryBuilders.missingQuery("businessTransaction");
         }
         return null;
     }

@@ -29,8 +29,8 @@ import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.indices.IndexMissingException;
 import org.elasticsearch.search.SearchHit;
 import org.hawkular.apm.api.model.Severity;
 import org.hawkular.apm.api.model.config.CollectorConfiguration;
@@ -140,7 +140,7 @@ public class ConfigurationServiceElasticsearch extends AbstractConfigurationServ
                     msgLog.errorFailedToParse(e);
                 }
             }
-        } catch (org.elasticsearch.indices.IndexMissingException t) {
+        } catch (IndexNotFoundException t) {
             // Ignore, as means that no business transaction configurations have
             // been stored yet
             if (msgLog.isTraceEnabled()) {
@@ -243,7 +243,7 @@ public class ConfigurationServiceElasticsearch extends AbstractConfigurationServ
                 }
             }
 
-        } catch (org.elasticsearch.indices.IndexMissingException t) {
+        } catch (IndexNotFoundException t) {
             // Ignore, as means that no business transaction configurations have
             // been stored yet
             if (msgLog.isTraceEnabled()) {
@@ -327,7 +327,7 @@ public class ConfigurationServiceElasticsearch extends AbstractConfigurationServ
                     msgLog.errorFailedToParse(e);
                 }
             }
-        } catch (org.elasticsearch.indices.IndexMissingException t) {
+        } catch (IndexNotFoundException t) {
             // Ignore, as means that no business transaction configurations have
             // been stored yet
             if (msgLog.isTraceEnabled()) {
@@ -373,7 +373,7 @@ public class ConfigurationServiceElasticsearch extends AbstractConfigurationServ
                     msgLog.errorFailedToParse(e);
                 }
             }
-        } catch (org.elasticsearch.indices.IndexMissingException t) {
+        } catch (IndexNotFoundException t) {
             // Ignore, as means that no business transaction configurations have
             // been stored yet
             if (msgLog.isTraceEnabled()) {
@@ -422,7 +422,7 @@ public class ConfigurationServiceElasticsearch extends AbstractConfigurationServ
         try {
             client.getClient().admin().indices().prepareDelete(index).execute().actionGet();
             client.clear(tenantId);
-        } catch (IndexMissingException ime) {
+        } catch (IndexNotFoundException ime) {
             // Ignore
         }
     }

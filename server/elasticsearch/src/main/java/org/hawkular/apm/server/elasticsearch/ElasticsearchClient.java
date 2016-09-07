@@ -18,6 +18,7 @@ package org.hawkular.apm.server.elasticsearch;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +36,6 @@ import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -171,8 +171,8 @@ public class ElasticsearchClient {
             client = node.getClient();
         } else {
             String[] hostsArray = hosts.split(",");
-            Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", cluster).build();
-            client = new TransportClient(settings);
+            Settings settings = Settings.builder().put("cluster.name", cluster).put("path.home", "/").build();
+            client = TransportClient.builder().settings(settings).build();
 
             for (String aHostsArray : hostsArray) {
                 String s = aHostsArray.trim();
@@ -182,8 +182,8 @@ public class ElasticsearchClient {
                     log.fine(" Connecting to elasticsearch host. [" + host[0] + ":" + host[1] + "]");
                 }
 
-                client = ((TransportClient)client).addTransportAddress(new InetSocketTransportAddress(host[0],
-                        new Integer(host[1])));
+                client = ((TransportClient)client).addTransportAddress(
+                        new InetSocketTransportAddress(InetAddress.getByName(host[0]), new Integer(host[1])));
             }
         }
     }
@@ -221,7 +221,7 @@ public class ElasticsearchClient {
                             }
 
                             Map<String, Object> dataMap = XContentFactory.xContent(jsonDefaultUserIndex)
-                                    .createParser(jsonDefaultUserIndex).mapAndClose();
+                                    .createParser(jsonDefaultUserIndex).map();
 
                             if (createIndex(index, (Map<String, Object>) dataMap.get(SETTINGS))) {
                                 if (log.isLoggable(Level.FINEST)) {

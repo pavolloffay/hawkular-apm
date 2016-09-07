@@ -35,9 +35,9 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.IndicesAdminClient;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.indices.IndexMissingException;
 import org.elasticsearch.search.SearchHit;
 import org.hawkular.apm.api.model.Constants;
 import org.hawkular.apm.api.model.Property;
@@ -82,7 +82,7 @@ public class SpanServiceElasticsearch implements SpanService {
                     .setRouting(id)
                     .execute()
                     .actionGet();
-        } catch (IndexMissingException ex) {
+        } catch (IndexNotFoundException ex) {
             log.errorf("Missing span index %s", tenantId);
             return null;
         }
@@ -140,7 +140,7 @@ public class SpanServiceElasticsearch implements SpanService {
                     log.errorFailedToParse(ex);
                 }
             }
-        } catch (IndexMissingException ex) {
+        } catch (IndexNotFoundException ex) {
             log.errorf("No index[%s] found, so unable to retrieve spans", index);
         }
 

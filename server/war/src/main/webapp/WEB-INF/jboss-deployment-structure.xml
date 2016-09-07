@@ -21,6 +21,8 @@
   <deployment>
     <dependencies>
       <module name="org.infinispan" services="import"/>
+      <module name="org.infinispan.commons" services="import"/>
+      <module name="org.hibernate.search.engine" services="import"/>
     </dependencies>
   </deployment>
 </jboss-deployment-structure>
