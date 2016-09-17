@@ -61,18 +61,18 @@ public class UserDAO {
 
     private void init() {
         PreparedStatement preparedStatement = session.prepare("DROP KEYSPACE IF EXISTS " + KEYSPACE).enableTracing();
-        executeWithClientSpan(preparedStatement.bind());
+        executeWithClientSpan(preparedStatement.bind(), preparedStatement.getQueryString());
 
         preparedStatement = session.prepare("CREATE KEYSPACE IF NOT EXISTS " + KEYSPACE + " WITH REPLICATION = " +
                 "{'class' : 'SimpleStrategy', 'replication_factor' : 1}").enableTracing();
-        executeWithClientSpan(preparedStatement.bind());
+        executeWithClientSpan(preparedStatement.bind(), preparedStatement.getQueryString());
 
         preparedStatement = session.prepare("USE " + KEYSPACE).enableTracing();
-        executeWithClientSpan(preparedStatement.bind());
+        executeWithClientSpan(preparedStatement.bind(), preparedStatement.getQueryString());
 
         preparedStatement = session.prepare("CREATE TABLE " + KEYSPACE + "." + TABLE +
                 "(id text PRIMARY KEY, name text)").enableTracing();
-        executeWithClientSpan(preparedStatement.bind());
+        executeWithClientSpan(preparedStatement.bind(), preparedStatement.getQueryString());
     }
 
     public User createUser(User user) {
@@ -83,7 +83,7 @@ public class UserDAO {
                 .value("name", user.getName())
                 .enableTracing();
 
-        executeWithClientSpan(statement);
+        executeWithClientSpan(statement, statement.toString());
 
         return user;
     }
@@ -94,7 +94,7 @@ public class UserDAO {
                 .where(QueryBuilder.eq("id", id))
                 .enableTracing();
 
-        ResultSet resultSet = executeWithClientSpan(statement);
+        ResultSet resultSet = executeWithClientSpan(statement, statement.toString());
 
         User user = null;
         for (Row row: resultSet) {
@@ -105,11 +105,14 @@ public class UserDAO {
     }
 
     public Collection<User> getAllUsers() {
-        Statement statement = QueryBuilder.select()
-                .from(KEYSPACE, TABLE)
-                .enableTracing();
+//        Statement statement = QueryBuilder.select()
+//                .from(KEYSPACE, TABLE)
+//                .enableTracing();
 
-        ResultSet resultSet = executeWithClientSpan(statement);
+        PreparedStatement preparedStatement =
+                session.prepare("SELECT * FROM " + KEYSPACE + "." + TABLE).enableTracing();
+
+        ResultSet resultSet = executeWithClientSpan(preparedStatement.bind(), preparedStatement.getQueryString());
 
         List<User> users = new ArrayList<>();
 
@@ -120,17 +123,18 @@ public class UserDAO {
         return users;
     }
 
-    private ResultSet executeWithClientSpan(Statement statement) {
+    private ResultSet executeWithClientSpan(Statement statement, String query) {
 
         ClientTracer clientTracer = brave.clientTracer();
-        SpanId spanId = clientTracer.startNewSpan(statement.toString());
+        System.out.println("Is tracing?: " + statement.isTracing());
+        SpanId spanId = clientTracer.startNewSpan(query);
 
         ByteBuffer traceHeaders = ByteBuffer.wrap(spanId.bytes());
         statement.setOutgoingPayload(Collections.singletonMap("zipkin", traceHeaders));
 
 //        clientTracer.set(serviceName);
         clientTracer.setClientSent();
-        ResultSet resultSet = session.execute(statement);
+        ResultSet resultSet = session.execute(statement.enableTracing());
         clientTracer.setClientReceived();
 
         return resultSet;
